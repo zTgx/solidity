@@ -64,7 +64,7 @@
 	#define fileno _fileno
 #else // unix
 	#include <unistd.h>
-#endif
+#endif 
 
 #include <string>
 #include <iostream>
@@ -309,6 +309,8 @@ static bool needsHumanTargetedStdout(po::variables_map const& _args)
 
 void CommandLineInterface::handleBinary(string const& _contract)
 {
+	sout() << "::handleBinary" << endl;
+
 	if (m_args.count(g_argBinary))
 	{
 		if (m_args.count(g_argOutputDir))
@@ -394,6 +396,8 @@ void CommandLineInterface::handleEwasm(string const& _contractName)
 
 void CommandLineInterface::handleBytecode(string const& _contract)
 {
+	sout() << "::handleBytecode" << endl;
+
 	if (m_args.count(g_argOpcodes))
 		handleOpcode(_contract);
 	if (m_args.count(g_argBinary) || m_args.count(g_argBinaryRuntime))
@@ -716,6 +720,8 @@ void CommandLineInterface::createJson(string const& _fileName, string const& _js
 
 bool CommandLineInterface::parseArguments(int _argc, char** _argv)
 {
+	sout() << "::parseArguments" << endl;
+
 	g_hasOutput = false;
 
 	// Declare the supported options.
@@ -873,10 +879,14 @@ Allowed options)",
 	// parse the compiler arguments
 	try
 	{
+		sout() << "parse the compiler arguments" << endl;
+
 		po::command_line_parser cmdLineParser(_argc, _argv);
 		cmdLineParser.style(po::command_line_style::default_style & (~po::command_line_style::allow_guessing));
 		cmdLineParser.options(allOptions).positional(filesPositions);
 		po::store(cmdLineParser.run(), m_args);
+
+		sout() << "store to m_args" << endl;
 	}
 	catch (po::error const& _exception)
 	{
@@ -938,6 +948,15 @@ Allowed options)",
 			}
 	}
 	po::notify(m_args);
+	sout() << "notify m_args : " << m_args.size() << endl;
+
+	for(auto it=m_args.begin(); it != m_args.end(); it++) {
+		// string key(it->first);
+		// sout() << "value : " << m_args[key].as<string>() << endl;
+ 		// sout() << key << " = type(value). " << m_args[key].value().type().name() << endl;
+
+		 sout() << "key = " << it->first << endl;
+	}
 
 	return true;
 }
@@ -946,6 +965,8 @@ bool CommandLineInterface::processInput()
 {
 	ReadCallback::Callback fileReader = [this](string const& _kind, string const& _path)
 	{
+		sout() << "ReadCallback called" << endl;
+
 		try
 		{
 			if (_kind != ReadCallback::kindString(ReadCallback::Kind::ReadFile))
@@ -982,6 +1003,9 @@ bool CommandLineInterface::processInput()
 
 			auto contents = readFileAsString(canonicalPath.string());
 			m_sourceCodes[path.generic_string()] = contents;
+
+			sout() << "ReadCallback content: " << contents << endl;
+
 			return ReadCallback::Result{true, contents};
 		}
 		catch (Exception const& _exception)
@@ -996,6 +1020,8 @@ bool CommandLineInterface::processInput()
 
 	if (m_args.count(g_argAllowPaths))
 	{
+		sout() << "g_argAllowPaths : " << g_argAllowPaths << endl;
+
 		vector<string> paths;
 		for (string const& path: boost::split(paths, m_args[g_argAllowPaths].as<string>(), boost::is_any_of(",")))
 		{
@@ -1012,6 +1038,8 @@ bool CommandLineInterface::processInput()
 
 	if (m_args.count(g_argStandardJSON))
 	{
+		sout() << "g_argStandardJSON : " << g_argStandardJSON << endl;
+
 		vector<string> inputFiles;
 		string jsonFile;
 		if (m_args.count(g_argInputFile))
@@ -1157,6 +1185,8 @@ bool CommandLineInterface::processInput()
 
 	try
 	{
+		sout() << "m_compiler setting : " << endl;
+
 		if (m_args.count(g_argMetadataLiteral) > 0)
 			m_compiler->useMetadataLiteralSources(true);
 		if (m_args.count(g_argMetadataHash))
@@ -1226,10 +1256,12 @@ bool CommandLineInterface::processInput()
 				m_compiler->setParserErrorRecovery(true);
 		}
 
+		sout() << "begin compile ...\n" << endl;
 		bool successful = m_compiler->compile();
+		sout() << "compile successful : " << successful << endl;
 
 		for (auto const& error: m_compiler->errors())
-		{
+		{			
 			g_hasOutput = true;
 			formatter->printErrorInformation(*error);
 		}
@@ -1658,6 +1690,8 @@ bool CommandLineInterface::assemble(
 
 void CommandLineInterface::outputCompilationResults()
 {
+	sout() << "::outputCompilationResults" << endl;
+
 	handleCombinedJSON();
 
 	// do we need AST output?
@@ -1673,6 +1707,8 @@ void CommandLineInterface::outputCompilationResults()
 	vector<string> contracts = m_compiler->contractNames();
 	for (string const& contract: contracts)
 	{
+		sout() << "contract name : " << contract << endl;
+		
 		if (needsHumanTargetedStdout(m_args))
 			sout() << endl << "======= " << contract << " =======" << endl;
 

@@ -50,14 +50,31 @@ static void setDefaultOrCLocale()
 #endif
 }
 
+/**
+ * solc 编译器的入口函数 main 
+ **/
 int main(int argc, char** argv)
 {
+	std::cout << "::main" << std::endl;
+	std::cout << "argc = " << argc << std::endl;
+	std::cout << "argv: " << std::endl;
+	for(int idx=0;idx<argc;idx++) {
+		std::cout << "	argv[" << idx << "] = " << argv[idx] << std::endl;
+	}
+
 	setDefaultOrCLocale();
+
+	// 从命令行读取参数及.sol代码文件
 	solidity::frontend::CommandLineInterface cli;
+
+	// 该方法主要是使用boost::program_options解析参数
 	if (!cli.parseArguments(argc, argv))
 		return 1;
+
+	// compile
 	if (!cli.processInput())
 		return 1;
+
 	bool success = false;
 	try
 	{
@@ -68,6 +85,8 @@ int main(int argc, char** argv)
 		cerr << "Exception during output generation: " << boost::diagnostic_information(_exception) << endl;
 		success = false;
 	}
+
+	std::cout << "return main with result: " << success << std::endl;
 
 	return success ? 0 : 1;
 }
