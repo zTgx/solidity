@@ -334,6 +334,7 @@ private:
 	/// The state per contract. Filled gradually during compilation.
 	struct Contract
 	{
+		// AST : class ContractDefinition: public Declaration, public StructurallyDocumented
 		ContractDefinition const* contract = nullptr;
 		std::shared_ptr<Compiler> compiler;
 		evmasm::LinkerObject object; ///< Deployment object (includes the runtime sub-object).

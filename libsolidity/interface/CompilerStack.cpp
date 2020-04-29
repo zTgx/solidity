@@ -223,39 +223,62 @@ void CompilerStack::reset(bool _keepSettings)
 
 void CompilerStack::setSources(StringMap _sources)
 {
+	std::cout << "::setSources" << std::endl;
+
 	if (m_stackState == SourcesSet)
 		BOOST_THROW_EXCEPTION(CompilerError() << errinfo_comment("Cannot change sources once set."));
+
 	if (m_stackState != Empty)
 		BOOST_THROW_EXCEPTION(CompilerError() << errinfo_comment("Must set sources before parsing."));
-	for (auto source: _sources)
+
+	for (auto source: _sources) {
+		std::cout << "m_sources key : " << source.first << " value : " << source.second << std::endl;
 		m_sources[source.first].scanner = make_shared<Scanner>(CharStream(/*content*/std::move(source.second), /*name*/source.first));
+	}
+	std::cout << "make_shared<Scanner>" << std::endl;
+	std::cout << "Current Stack State : " << "SourceSet" << std::endl;
+
 	m_stackState = SourcesSet;
 }
 
+// Use Parser to Parse contract source code
 bool CompilerStack::parse()
 {
+	std::cout << "::parse" << std::endl;
+
 	if (m_stackState != SourcesSet)
 		BOOST_THROW_EXCEPTION(CompilerError() << errinfo_comment("Must call parse only after the SourcesSet state."));
 	m_errorReporter.clear();
 
+	// check version, store warning message in m_errorReporter
 	if (SemVerVersion{string(VersionString)}.isPrerelease())
 		m_errorReporter.warning("This is a pre-release compiler version, please do not use it in production.");
 
+	// create Parser Object
 	Parser parser{m_errorReporter, m_evmVersion, m_parserErrorRecovery};
 
+	// sourcesToParse store solidity file path, like: ./solc/helloworld.sol
 	vector<string> sourcesToParse;
 	for (auto const& s: m_sources)
 		sourcesToParse.push_back(s.first);
+
 	for (size_t i = 0; i < sourcesToParse.size(); ++i)
 	{
 		string const& path = sourcesToParse[i];
+
+		// Get contract code
 		Source& source = m_sources[path];
+
+		// Reset Scanner
 		source.scanner->reset();
+
+		// Parse source scanner
 		source.ast = parser.parse(source.scanner);
 		if (!source.ast)
 			solAssert(!Error::containsOnlyWarnings(m_errorReporter.errors()), "Parser returned null but did not report error.");
 		else
 		{
+			//Set Annotation Path
 			source.ast->annotation().path = path;
 			for (auto const& newSource: loadMissingSources(*source.ast, path))
 			{
@@ -267,9 +290,11 @@ bool CompilerStack::parse()
 		}
 	}
 
+	std::cout << "Current State State : " << "ParsingPerformed" << std::endl;
 	m_stackState = ParsingPerformed;
 	if (!Error::containsOnlyWarnings(m_errorReporter.errors()))
 		m_hasError = true;
+
 	return !m_hasError;
 }
 
@@ -295,24 +320,29 @@ void CompilerStack::importASTs(map<string, Json::Value> const& _sources)
 
 bool CompilerStack::analyze()
 {
+	std::cout << "::analyze" << std::endl;
+
 	if (m_stackState != ParsingPerformed || m_stackState >= AnalysisPerformed)
 		BOOST_THROW_EXCEPTION(CompilerError() << errinfo_comment("Must call analyze only after parsing was performed."));
 	resolveImports();
 
 	bool noErrors = true;
-
 	try
 	{
+		// m_sourceOrder's Type: std::vector<Source const*>, Source contains source code.
+		// Syntax Checker
 		SyntaxChecker syntaxChecker(m_errorReporter, m_optimiserSettings.runYulOptimiser);
 		for (Source const* source: m_sourceOrder)
 			if (source->ast && !syntaxChecker.checkSyntax(*source->ast))
 				noErrors = false;
 
+		// Docs Analyser
 		DocStringAnalyser docStringAnalyser(m_errorReporter);
 		for (Source const* source: m_sourceOrder)
 			if (source->ast && !docStringAnalyser.analyseDocStrings(*source->ast))
 				noErrors = false;
 
+		// Name And Type Resolver
 		m_globalContext = make_shared<GlobalContext>();
 		NameAndTypeResolver resolver(*m_globalContext, m_evmVersion, m_scopes, m_errorReporter);
 		for (Source const* source: m_sourceOrder)
@@ -322,6 +352,7 @@ bool CompilerStack::analyze()
 		map<string, SourceUnit const*> sourceUnitsByName;
 		for (auto& source: m_sources)
 			sourceUnitsByName[source.first] = source.second.ast.get();
+
 		for (Source const* source: m_sourceOrder)
 			if (source->ast && !resolver.performImports(*source->ast, sourceUnitsByName))
 				return false;
@@ -339,8 +370,10 @@ bool CompilerStack::analyze()
 						// Note that we now reference contracts by their fully qualified names, and
 						// thus contracts can only conflict if declared in the same source file. This
 						// should already cause a double-declaration error elsewhere.
-						if (m_contracts.find(contract->fullyQualifiedName()) == m_contracts.end())
+						if (m_contracts.find(contract->fullyQualifiedName()) == m_contracts.end()) {
+							std::cout << "Store ContractDefinition to m_contract, contract name : " << contract->fullyQualifiedName() << std::endl;
 							m_contracts[contract->fullyQualifiedName()].contract = contract;
+						}
 						else
 							solAssert(
 								m_errorReporter.hasErrors(),
@@ -350,6 +383,7 @@ bool CompilerStack::analyze()
 
 				}
 
+		// DeclarationTypeChecker
 		DeclarationTypeChecker declarationTypeChecker(m_errorReporter, m_evmVersion);
 		for (Source const* source: m_sourceOrder)
 			if (source->ast && !declarationTypeChecker.check(*source->ast))
@@ -359,6 +393,7 @@ bool CompilerStack::analyze()
 		// contract or function level.
 		// This also calculates whether a contract is abstract, which is needed by the
 		// type checker.
+		// ContractLevelChecker 
 		ContractLevelChecker contractLevelChecker(m_errorReporter);
 		for (Source const* source: m_sourceOrder)
 			if (source->ast)
@@ -455,6 +490,7 @@ bool CompilerStack::analyze()
 		noErrors = false;
 	}
 
+	std::cout << "Current Stack State : " << "AnalysisPerformed" << std::endl;
 	m_stackState = AnalysisPerformed;
 	if (!noErrors)
 		m_hasError = true;
@@ -464,9 +500,14 @@ bool CompilerStack::analyze()
 
 bool CompilerStack::parseAndAnalyze()
 {
+	std::cout << "::parseAndAnalyze" << std::endl;
 	bool success = parse();
-	if (success || m_parserErrorRecovery)
+	std::cout << "Parse Result : " << ( success ? "Successful" : "Error") << std::endl;
+	if (success || m_parserErrorRecovery) {
 		success = analyze();
+		std::cout << "Analyze Result : " << ( success ? "Successful" : "Error") << std::endl;
+	}
+
 	return success;
 }
 
@@ -534,9 +575,15 @@ bool CompilerStack::compile()
 
 void CompilerStack::link()
 {
+	std::cout << "::link" << std::endl;
+
 	solAssert(m_stackState >= CompilationSuccessful, "");
+
 	for (auto& contract: m_contracts)
-	{
+	{	
+		std::cout << "Contract Name : " << contract.first << std::endl;
+
+		// Link Object / runtimeObject
 		contract.second.object.link(m_libraries);
 		contract.second.runtimeObject.link(m_libraries);
 	}
