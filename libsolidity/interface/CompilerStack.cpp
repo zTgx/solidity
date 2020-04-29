@@ -497,6 +497,8 @@ bool CompilerStack::isRequestedContract(ContractDefinition const& _contract) con
 
 bool CompilerStack::compile()
 {
+	std::cout << "::compiling...\n" << std::endl;
+
 	if (m_stackState < AnalysisPerformed)
 		if (!parseAndAnalyze())
 			return false;
@@ -517,8 +519,16 @@ bool CompilerStack::compile()
 					if (m_generateEwasm)
 						generateEwasm(*contract);
 				}
+	//Set compile status successful.
 	m_stackState = CompilationSuccessful;
+
+	std::cout << "being link" << std::endl;
+	// link
 	this->link();
+	std::cout << "link ended." << std::endl;
+	
+	// return true
+	std::cout << "compiled successful ended" << std::endl;
 	return true;
 }
 

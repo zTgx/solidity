@@ -536,6 +536,8 @@ void CommandLineInterface::handleGasEstimation(string const& _contract)
 
 bool CommandLineInterface::readInputFilesAndConfigureRemappings()
 {
+	sout() << "::readInputFilesAndConfigureRemappings" << endl;
+
 	bool ignoreMissing = m_args.count(g_argIgnoreMissingFiles);
 	bool addStdin = false;
 	if (m_args.count(g_argInputFile))
@@ -560,6 +562,8 @@ bool CommandLineInterface::readInputFilesAndConfigureRemappings()
 			else
 			{
 				auto infile = boost::filesystem::path(path);
+				sout() << "contract file path: " << infile << endl;
+
 				if (!boost::filesystem::exists(infile))
 				{
 					if (!ignoreMissing)
@@ -586,7 +590,9 @@ bool CommandLineInterface::readInputFilesAndConfigureRemappings()
 					continue;
 				}
 
-				m_sourceCodes[infile.generic_string()] = readFileAsString(infile.string());
+				std::string infileString = readFileAsString(infile.string());
+				sout() << "contract code : " << infileString << endl;
+				m_sourceCodes[infile.generic_string()] = infileString;
 				path = boost::filesystem::canonical(infile).string();
 			}
 			m_allowedDirectories.push_back(boost::filesystem::path(path).remove_filename());
@@ -1175,6 +1181,7 @@ bool CommandLineInterface::processInput()
 		}
 	}
 
+	sout() << "make_unique CompilerStack" << endl;
 	m_compiler = make_unique<CompilerStack>(fileReader);
 
 	unique_ptr<SourceReferenceFormatter> formatter;
@@ -1196,6 +1203,8 @@ bool CommandLineInterface::processInput()
 
 		if (m_args.count(g_argLibraries))
 			m_compiler->setLibraries(m_libraries);
+		
+		// Setting EVM Version
 		m_compiler->setEVMVersion(m_evmVersion);
 		m_compiler->setRevertStringBehaviour(m_revertStrings);
 		// TODO: Perhaps we should not compile unless requested
@@ -1234,8 +1243,10 @@ bool CommandLineInterface::processInput()
 		{
 			try
 			{
+				sout() << "m_compiler importASTs" << endl;
 				m_compiler->importASTs(parseAstFromInput());
 
+				sout() << "m_compiler begin analyze" << endl;
 				if (!m_compiler->analyze())
 				{
 					for (auto const& error: m_compiler->errors())
@@ -1252,13 +1263,14 @@ bool CommandLineInterface::processInput()
 		else
 		{
 			m_compiler->setSources(m_sourceCodes);
+
 			if (m_args.count(g_argErrorRecovery))
 				m_compiler->setParserErrorRecovery(true);
 		}
 
-		sout() << "begin compile ...\n" << endl;
+		sout() << "Everything is Already, begin compile ...\n" << endl;
 		bool successful = m_compiler->compile();
-		sout() << "compile successful : " << successful << endl;
+		sout() << "Compiled Result : " << (successful ? "successful" : "Error") << endl;
 
 		for (auto const& error: m_compiler->errors())
 		{			
