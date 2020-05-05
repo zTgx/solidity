@@ -91,6 +91,8 @@ void ContractCompiler::compileContract(
 	map<ContractDefinition const*, shared_ptr<Compiler const>> const& _otherCompilers
 )
 {
+	std::cout << "::ContractCompiler::compileContract" << std::endl;
+
 	CompilerContext::LocationSetter locationSetter(m_context, _contract);
 
 	if (_contract.isLibrary())
@@ -112,6 +114,8 @@ size_t ContractCompiler::compileConstructor(
 	std::map<ContractDefinition const*, shared_ptr<Compiler const>> const& _otherCompilers
 )
 {
+	std::cout << "::ContractCompiler::compileConstructor" << std::endl;
+
 	CompilerContext::LocationSetter locationSetter(m_context, _contract);
 	if (_contract.isLibrary())
 		return deployLibrary(_contract);
@@ -146,6 +150,8 @@ void ContractCompiler::appendCallValueCheck()
 
 void ContractCompiler::appendInitAndConstructorCode(ContractDefinition const& _contract)
 {
+	std::cout << "::ContractCompiler::appendInitAndConstructorCode" << std::endl;
+
 	solAssert(!_contract.isLibrary(), "Tried to initialize library.");
 	CompilerContext::LocationSetter locationSetter(m_context, _contract);
 
@@ -167,6 +173,8 @@ void ContractCompiler::appendInitAndConstructorCode(ContractDefinition const& _c
 
 size_t ContractCompiler::packIntoContractCreator(ContractDefinition const& _contract)
 {
+	std::cout << "::::ContractCompiler::packIntoContractCreator" << std::endl;
+
 	solAssert(!!m_runtimeCompiler, "");
 	solAssert(!_contract.isLibrary(), "Tried to use contract creator or library.");
 
@@ -575,6 +583,8 @@ bool ContractCompiler::visit(VariableDeclaration const& _variableDeclaration)
 
 bool ContractCompiler::visit(FunctionDefinition const& _function)
 {
+	std::cout << "::ContractCompiler::visit(FunctionDefinition) externalSignature : " << _function.externalSignature() << std::endl;
+
 	CompilerContext::LocationSetter locationSetter(m_context, _function);
 
 	m_context.startFunction(_function);

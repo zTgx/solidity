@@ -527,6 +527,8 @@ bool CompilerStack::isRequestedContract(ContractDefinition const& _contract) con
 
 	for (auto const& key: vector<string>{"", _contract.sourceUnitName()})
 	{
+		std::cout << "::isRequestedContract key = " << key << std::endl;
+
 		auto const& it = m_requestedContractNames.find(key);
 		if (it != m_requestedContractNames.end())
 			if (it->second.count(_contract.name()) || it->second.count(""))
@@ -555,6 +557,7 @@ bool CompilerStack::compile()
 				if (isRequestedContract(*contract))
 				{
 					compileContract(*contract, otherCompilers);
+					
 					if (m_generateIR || m_generateEwasm)
 						generateIR(*contract);
 					if (m_generateEwasm)
@@ -1110,14 +1113,18 @@ void CompilerStack::compileContract(
 	map<ContractDefinition const*, shared_ptr<Compiler const>>& _otherCompilers
 )
 {
+	std::cout << "::compileContract" << std::endl;
+
 	solAssert(m_stackState >= AnalysisPerformed, "");
 	if (m_hasError)
 		BOOST_THROW_EXCEPTION(CompilerError() << errinfo_comment("Called compile with errors."));
 
 	if (_otherCompilers.count(&_contract) || !_contract.canBeDeployed())
 		return;
-	for (auto const* dependency: _contract.annotation().contractDependencies)
+	for (auto const* dependency: _contract.annotation().contractDependencies) {
+		std::cout << ".compile dependency contract" << std::endl;
 		compileContract(*dependency, _otherCompilers);
+	}
 
 	Contract& compiledContract = m_contracts.at(_contract.fullyQualifiedName());
 
@@ -1128,6 +1135,7 @@ void CompilerStack::compileContract(
 		metadata(compiledContract),
 		!onlySafeExperimentalFeaturesActivated(_contract.sourceUnit().annotation().experimentalFeatures)
 	);
+	std::cout << "cborEncodedMetadata: " << cborEncodedMetadata << std::endl;
 
 	try
 	{

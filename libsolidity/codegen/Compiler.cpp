@@ -24,6 +24,7 @@
 
 #include <libsolidity/codegen/ContractCompiler.h>
 #include <libevmasm/Assembly.h>
+#include <iostream>
 
 using namespace std;
 using namespace solidity;
@@ -35,6 +36,8 @@ void Compiler::compileContract(
 	bytes const& _metadata
 )
 {
+	std::cout << "::Compiler::compileContract" << std::endl;
+
 	ContractCompiler runtimeCompiler(nullptr, m_runtimeContext, m_optimiserSettings);
 	runtimeCompiler.compileContract(_contract, _otherCompilers);
 	m_runtimeContext.appendAuxiliaryData(_metadata);

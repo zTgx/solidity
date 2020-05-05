@@ -116,9 +116,19 @@ map<util::FixedHash<4>, FunctionTypePointer> ContractDefinition::interfaceFuncti
 
 FunctionDefinition const* ContractDefinition::constructor() const
 {
-	for (FunctionDefinition const* f: definedFunctions())
-		if (f->isConstructor())
+	std::cout << "::ContractDefinition::constructor()" << std::endl;
+
+	std::cout << "---recursively check definedFunctions, is it a constructor" << std::endl;
+	for (FunctionDefinition const* f: definedFunctions()) {
+		std::cout << "Current function externalSignature = " << f->externalSignature() << std::endl;
+		if (f->isConstructor()) {
+			std::cout << "---" << f->externalSignature() << " is constructor!" << std::endl;
 			return f;
+		}
+
+	}
+	std::cout << "---not constructor" << std::endl;
+
 	return nullptr;
 }
 
