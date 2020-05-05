@@ -203,7 +203,8 @@ public:
 class Declaration: public ASTNode, public Scopable
 {
 public:
-
+	// Declaration visibility: public / internal / private / external.
+	// enum class Visibility { Default, Private, Internal, Public, External };
 	static std::string visibilityToString(Visibility _visibility)
 	{
 		switch (_visibility)

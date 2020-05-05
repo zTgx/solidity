@@ -120,6 +120,7 @@ FunctionDefinition const* ContractDefinition::constructor() const
 
 	std::cout << "---recursively check definedFunctions, is it a constructor" << std::endl;
 	for (FunctionDefinition const* f: definedFunctions()) {
+		std::cout << "name: " << f->name() << std::endl;
 		std::cout << "Current function externalSignature = " << f->externalSignature() << std::endl;
 		if (f->isConstructor()) {
 			std::cout << "---" << f->externalSignature() << " is constructor!" << std::endl;
@@ -248,6 +249,8 @@ ContractDefinition const* ContractDefinition::superContract(ContractDefinition c
 
 FunctionDefinition const* ContractDefinition::nextConstructor(ContractDefinition const& _mostDerivedContract) const
 {
+	std::cout << "::ContractDefinition::nextConstructor" << std::endl;
+
 	ContractDefinition const* next = superContract(_mostDerivedContract);
 	if (next == nullptr)
 		return nullptr;
@@ -370,6 +373,10 @@ FunctionDefinition const& FunctionDefinition::resolveVirtual(
 	ContractDefinition const* _searchStart
 ) const
 {
+	std::cout << "::FunctionDefinition::resolveVirtual" << std::endl;
+	std::cout << "::name: " << name();
+	std::cout << "::isContructor: " << isConstructor() << std::endl;
+
 	solAssert(!isConstructor(), "");
 	// If we are not doing super-lookup and the function is not virtual, we can stop here.
 	if (_searchStart == nullptr && !virtualSemantics())
