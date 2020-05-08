@@ -244,10 +244,22 @@ public:
 	void pushVisitedNodes(ASTNode const* _node) { m_visitedNodes.push(_node); updateSourceLocation(); }
 
 	/// Append elements to the current instruction list and adjust @a m_stackOffset.
-	CompilerContext& operator<<(evmasm::AssemblyItem const& _item) { m_asm->append(_item); return *this; }
-	CompilerContext& operator<<(evmasm::Instruction _instruction) { m_asm->append(_instruction); return *this; }
-	CompilerContext& operator<<(u256 const& _value) { m_asm->append(_value); return *this; }
-	CompilerContext& operator<<(bytes const& _data) { m_asm->append(_data); return *this; }
+	CompilerContext& operator<<(evmasm::AssemblyItem const& _item) { 
+		std::cout << "<< instruction assembly item" << std::endl;
+		m_asm->append(_item); return *this; 
+	}
+	CompilerContext& operator<<(evmasm::Instruction _instruction) { 
+		std::cout << "<< instruaction name: " << instructionInfo(_instruction).name << std::endl;
+		m_asm->append(_instruction); return *this; 
+	}
+	CompilerContext& operator<<(u256 const& _value) { 
+		std::cout << "<< u256 : " << _value << std::endl;
+		m_asm->append(_value); return *this; 
+	}
+	CompilerContext& operator<<(bytes const& _data) { 
+		std::cout << "<< bytes data: " << _data << std::endl;
+		m_asm->append(_data); return *this; 
+	}
 
 	/// Appends inline assembly (strict mode).
 	/// @a _replacements are string-matching replacements that are performed prior to parsing the inline assembly.

@@ -114,7 +114,7 @@ size_t ContractCompiler::compileConstructor(
 	std::map<ContractDefinition const*, shared_ptr<Compiler const>> const& _otherCompilers
 )
 {
-	std::cout << "::ContractCompiler::compileConstructor" << std::endl;
+	std::cout << "::ContractCompiler::compileConstructor" << std::endl; 
 
 	CompilerContext::LocationSetter locationSetter(m_context, _contract);
 	if (_contract.isLibrary()) {
@@ -148,6 +148,8 @@ void ContractCompiler::initializeContext(
 	registerStateVariables(_contract);
 
 	m_context.resetVisitedNodes(&_contract);
+
+	std::cout << "::initializeContext end" << std::endl;
 }
 
 void ContractCompiler::appendCallValueCheck()
@@ -193,6 +195,7 @@ size_t ContractCompiler::packIntoContractCreator(ContractDefinition const& _cont
 	// We jump to the deploy routine because we first have to append all missing functions,
 	// which can cause further functions to be added to the runtime context.
 	evmasm::AssemblyItem deployRoutine = m_context.appendJumpToNew();
+	std::cout << "deploy routine: " << deployRoutine.toAssemblyText() << std::endl;
 
 	// We have to include copies of functions in the construction time and runtime context
 	// because of absolute jumps.
@@ -210,11 +213,16 @@ size_t ContractCompiler::packIntoContractCreator(ContractDefinition const& _cont
 	// Push all immutable values on the stack.
 	for (auto const& immutable: immutables)
 		CompilerUtils(m_context).loadFromMemory(m_context.immutableMemoryOffset(*immutable), *immutable->annotation().type);
+
 	m_context.pushSubroutineSize(m_context.runtimeSub());
+
 	if (immutables.empty())
 		m_context << Instruction::DUP1;
+	
 	m_context.pushSubroutineOffset(m_context.runtimeSub());
+	
 	m_context << u256(0) << Instruction::CODECOPY;
+	
 	// Assign immutable values from stack in reversed order.
 	for (auto const& immutable: immutables | boost::adaptors::reversed)
 	{
@@ -222,9 +230,13 @@ size_t ContractCompiler::packIntoContractCreator(ContractDefinition const& _cont
 		for (auto&& slotName: slotNames | boost::adaptors::reversed)
 			m_context.appendImmutableAssignment(slotName);
 	}
+	
 	if (!immutables.empty())
 		m_context.pushSubroutineSize(m_context.runtimeSub());
+	
 	m_context << u256(0) << Instruction::RETURN;
+   
+	// std::cout << "m_context.deploy: " <<  
 
 	return m_context.runtimeSub();
 }
