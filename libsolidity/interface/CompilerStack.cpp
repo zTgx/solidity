@@ -263,6 +263,7 @@ bool CompilerStack::parse()
 	for (auto const& s: m_sources)
 		sourcesToParse.push_back(s.first);
 
+	std::cout << "source to parse" << std::endl;
 	for (size_t i = 0; i < sourcesToParse.size(); ++i)
 	{
 		string const& path = sourcesToParse[i];
@@ -502,8 +503,11 @@ bool CompilerStack::analyze()
 bool CompilerStack::parseAndAnalyze()
 {
 	std::cout << "::parseAndAnalyze" << std::endl;
-	bool success = parse();
+	
+	bool success = parse(); // Generate AST Tokens
+
 	std::cout << "Parse Result : " << ( success ? "Successful" : "Error") << std::endl;
+	
 	if (success || m_parserErrorRecovery) {
 		success = analyze();
 		std::cout << "Analyze Result : " << ( success ? "Successful" : "Error") << std::endl;
@@ -557,7 +561,9 @@ bool CompilerStack::compile()
 			if (auto contract = dynamic_cast<ContractDefinition const*>(node.get()))
 				if (isRequestedContract(*contract))
 				{
+					std::cout << "[[[[[[[[[[[[[[[[" << "isRequestedContract" << "]]]]]]]]]]]]]]]]]]]]]]]]" << std::endl;
 					compileContract(*contract, otherCompilers);
+					std::cout << "[[[[[[[[[[[[[[[[" << "EENNNDDDD" << "]]]]]]]]]]]]]]]]]]]]]]]]" << std::endl;
 					
 					if (m_generateIR || m_generateEwasm)
 						generateIR(*contract);
@@ -1121,10 +1127,12 @@ void CompilerStack::compileContract(
 	if (m_hasError)
 		BOOST_THROW_EXCEPTION(CompilerError() << errinfo_comment("Called compile with errors."));
 
+	//  constructorIsPublic() && !abstract() && !isInterface(); 
+	std::cout << "_otherCompilers.count(&_contract) : " << _otherCompilers.count(&_contract) << std::endl;
 	if (_otherCompilers.count(&_contract) || !_contract.canBeDeployed())
 		return;
+
 	for (auto const* dependency: _contract.annotation().contractDependencies) {
-		std::cout << ".compile dependency contract" << std::endl;
 		compileContract(*dependency, _otherCompilers);
 	}
 
@@ -1142,6 +1150,7 @@ void CompilerStack::compileContract(
 	try
 	{
 		// Run optimiser and compile the contract.
+		// _contract is AST Nodes
 		compiler->compileContract(_contract, _otherCompilers, cborEncodedMetadata);
 	}
 	catch(evmasm::OptimizerException const&)

@@ -40,7 +40,8 @@ void Compiler::compileContract(
 
 	ContractCompiler runtimeCompiler(nullptr, m_runtimeContext, m_optimiserSettings);
 	runtimeCompiler.compileContract(_contract, _otherCompilers);
-	m_runtimeContext.appendAuxiliaryData(_metadata);
+		
+	m_runtimeContext.appendAuxiliaryData(_metadata);  
 
 	// This might modify m_runtimeContext because it can access runtime functions at
 	// creation time.
@@ -51,7 +52,6 @@ void Compiler::compileContract(
 	ContractCompiler creationCompiler(&runtimeCompiler, m_context, creationSettings);
 
 	m_runtimeSub = creationCompiler.compileConstructor(_contract, _otherCompilers);
-	std::cout << "compileConstructor runtime-object m_runtimeSub :" << m_runtimeSub << std::endl;
 
 	m_context.optimise(m_optimiserSettings);
 }

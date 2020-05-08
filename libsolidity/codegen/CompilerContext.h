@@ -71,7 +71,7 @@ public:
 	{
 		if (m_runtimeContext) {
 			m_runtimeSub = size_t(m_asm->newSub(m_runtimeContext->m_asm).data());
-			std::cout << "CompilerContext::CompilerContext m_runtimeSub : " << m_runtimeSub << std::endl;
+			std::cout << "INIT CompilerContext m_runtimeSub : " << m_runtimeSub << std::endl;
 		}
 	}
 

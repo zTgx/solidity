@@ -41,11 +41,16 @@ using namespace solidity::util;
 AssemblyItem const& Assembly::append(AssemblyItem const& _i)
 {
 	assertThrow(m_deposit >= 0, AssemblyException, "Stack underflow.");
+
 	m_deposit += _i.deposit();
+
 	m_items.emplace_back(_i);
+
 	if (!m_items.back().location().isValid() && m_currentSourceLocation.isValid())
 		m_items.back().setLocation(m_currentSourceLocation);
+
 	m_items.back().m_modifierDepth = m_currentModifierDepth;
+	
 	return m_items.back();
 }
 

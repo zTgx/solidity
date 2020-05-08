@@ -101,10 +101,15 @@ void ContractCompiler::compileContract(
 		appendDelegatecallCheck();
 
 	initializeContext(_contract, _otherCompilers);
+	std::cout << "ENDDDDDDDDDDDDDDDDDDDDDD initializeContext" << std::endl;
+
 	// This generates the dispatch function for externally visible functions
 	// and adds the function to the compilation queue. Additionally internal functions,
 	// which are referenced directly or indirectly will be added.
+	std::cout << "SSSSSSSSSSSSSSSSSSSSSSS appendFunctionSelector" << std::endl;
 	appendFunctionSelector(_contract);
+	std::cout << "ENDDDDDDDDDDDDDDDDDDDDDD appendFunctionSelector" << std::endl;
+
 	// This processes the above populated queue until it is empty.
 	appendMissingFunctions();
 }
@@ -185,7 +190,6 @@ void ContractCompiler::appendInitAndConstructorCode(ContractDefinition const& _c
 size_t ContractCompiler::packIntoContractCreator(ContractDefinition const& _contract)
 {
 	std::cout << "::ContractCompiler::packIntoContractCreator" << std::endl;
-	std::cout << "Calc m_runtimeSub" << std::endl;
 
 	solAssert(!!m_runtimeCompiler, "");
 	solAssert(!_contract.isLibrary(), "Tried to use contract creator or library.");
@@ -236,8 +240,6 @@ size_t ContractCompiler::packIntoContractCreator(ContractDefinition const& _cont
 	
 	m_context << u256(0) << Instruction::RETURN;
    
-	// std::cout << "m_context.deploy: " <<  
-
 	return m_context.runtimeSub();
 }
 
@@ -419,17 +421,23 @@ bool hasPayableFunctions(ContractDefinition const& _contract)
 void ContractCompiler::appendFunctionSelector(ContractDefinition const& _contract)
 {
 	map<FixedHash<4>, FunctionTypePointer> interfaceFunctions = _contract.interfaceFunctions();
+	std::cout << "interfaceFunctions size: " << interfaceFunctions.size() << std::endl;
+
 	map<FixedHash<4>, evmasm::AssemblyItem const> callDataUnpackerEntryPoints;
 
-	if (_contract.isLibrary())
-	{
+	if (_contract.isLibrary()) {
 		solAssert(m_context.stackHeight() == 1, "CALL / DELEGATECALL flag expected.");
 	}
 
 	FunctionDefinition const* fallback = _contract.fallbackFunction();
+	std::cout << "isLibrary: " << (_contract.isLibrary() ? "YES" : "NO" ) << std::endl;
+	std::cout << "fallback: " << ( fallback ? "YES" : "NO") << std::endl;
+
 	solAssert(!_contract.isLibrary() || !fallback, "Libraries can't have fallback functions");
 
 	FunctionDefinition const* etherReceiver = _contract.receiveFunction();
+	std::cout << "etherReceiver: " << ( etherReceiver ? "YES" : "NO") << std::endl;
+	
 	solAssert(!_contract.isLibrary() || !fallback, "Libraries can't have ether receiver functions");
 
 	bool needToAddCallvalueCheck = true;
@@ -467,8 +475,10 @@ void ContractCompiler::appendFunctionSelector(ContractDefinition const& _contrac
 
 	m_context << notFoundOrReceiveEther;
 
-	if (!fallback && !etherReceiver)
+	if (!fallback && !etherReceiver) {
+		std::cout << "Contract does not have fallback nor receive functions" << std::endl;
 		m_context.appendRevert("Contract does not have fallback nor receive functions");
+	}
 	else
 	{
 		if (etherReceiver)
@@ -606,7 +616,7 @@ bool ContractCompiler::visit(VariableDeclaration const& _variableDeclaration)
 
 bool ContractCompiler::visit(FunctionDefinition const& _function)
 {
-	std::cout << "::ContractCompiler::visit(FunctionDefinition) externalSignature : " << _function.externalSignature() << std::endl;
+	std::cout << "::ContractCompiler::visit --- FunctionDefinition externalSignature : " << _function.externalSignature() << std::endl;
 
 	CompilerContext::LocationSetter locationSetter(m_context, _function);
 
@@ -694,6 +704,8 @@ bool ContractCompiler::visit(FunctionDefinition const& _function)
 		if (!_function.isFallback() && !_function.isReceive())
 			m_context.appendJump(evmasm::AssemblyItem::JumpType::OutOfFunction);
 	}
+
+	std::cout << "::ContractCompiler::visit --- FunctionDefinition externalSignature" << std::endl;
 
 	return false;
 }

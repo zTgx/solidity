@@ -84,7 +84,7 @@ ASTPointer<SourceUnit> Parser::parse(shared_ptr<Scanner> const& _scanner)
 		{
 			switch (m_scanner->currentToken())
 			{
-			case Token::Pragma:
+			case Token::Pragma: 
 				nodes.push_back(parsePragmaDirective());
 				break;
 			case Token::Import:
@@ -150,6 +150,8 @@ ASTPointer<StructuredDocumentation> Parser::parseStructuredDocumentation()
 
 ASTPointer<PragmaDirective> Parser::parsePragmaDirective()
 {
+	std::cout << "::Parser::parsePragmaDirective" << std::endl;
+
 	RecursionGuard recursionGuard(*this);
 	// pragma anything* ;
 	// Currently supported:
@@ -287,6 +289,8 @@ std::pair<ContractKind, bool> Parser::parseContractKind()
 
 ASTPointer<ContractDefinition> Parser::parseContractDefinition()
 {
+	std::cout << "::Parse::parseContractDefinition" << std::endl;
+	
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	ASTPointer<ASTString> name =  nullptr;
