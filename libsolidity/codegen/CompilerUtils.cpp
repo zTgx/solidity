@@ -1321,7 +1321,11 @@ void CompilerUtils::computeHashStatic()
 
 void CompilerUtils::copyContractCodeToMemory(ContractDefinition const& contract, bool _creation)
 {
+	std::cout << "::copyContractCodeToMemory: " << _creation << std::endl;
+	 
 	string which = _creation ? "Creation" : "Runtime";
+	std::cout << ":whichi: " << which << std::endl;
+
 	m_context.callLowLevelFunction(
 		"$copyContract" + which + "CodeToMemory_" + contract.type()->identifier(),
 		1,

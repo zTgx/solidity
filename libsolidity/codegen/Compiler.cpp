@@ -49,7 +49,9 @@ void Compiler::compileContract(
 	// settings accordingly.
 	creationSettings.expectedExecutionsPerDeployment = 1;
 	ContractCompiler creationCompiler(&runtimeCompiler, m_context, creationSettings);
+
 	m_runtimeSub = creationCompiler.compileConstructor(_contract, _otherCompilers);
+	std::cout << "compileConstructor runtime-object m_runtimeSub :" << m_runtimeSub << std::endl;
 
 	m_context.optimise(m_optimiserSettings);
 }

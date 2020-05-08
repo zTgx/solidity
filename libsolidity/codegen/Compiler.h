@@ -57,7 +57,10 @@ public:
 	/// @returns The entire assembled object (with constructor).
 	evmasm::LinkerObject assembledObject() const { return m_context.assembledObject(); }
 	/// @returns Only the runtime object (without constructor).
-	evmasm::LinkerObject runtimeObject() const { return m_context.assembledRuntimeObject(m_runtimeSub); }
+	evmasm::LinkerObject runtimeObject() const { 
+		std::cout << "evmasm::LinkerObject runtimeObject() m_runtimeSub: " << m_runtimeSub << std::endl;
+		return m_context.assembledRuntimeObject(m_runtimeSub); 
+	}
 	/// @arg _sourceCodes is the map of input files to source code strings
 	std::string assemblyString(StringMap const& _sourceCodes = StringMap()) const
 	{

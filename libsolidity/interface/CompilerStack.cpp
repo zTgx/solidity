@@ -250,6 +250,7 @@ bool CompilerStack::parse()
 		BOOST_THROW_EXCEPTION(CompilerError() << errinfo_comment("Must call parse only after the SourcesSet state."));
 	m_errorReporter.clear();
 
+	std::cout << "WARNING: current compiler version: " << VersionString << std::endl;
 	// check version, store warning message in m_errorReporter
 	if (SemVerVersion{string(VersionString)}.isPrerelease())
 		m_errorReporter.warning("This is a pre-release compiler version, please do not use it in production.");
@@ -719,6 +720,7 @@ evmasm::LinkerObject const& CompilerStack::ewasmObject(string const& _contractNa
 	return contract(_contractName).ewasmObject;
 }
 
+// Get Deployment code 
 evmasm::LinkerObject const& CompilerStack::object(string const& _contractName) const
 {
 	if (m_stackState != CompilationSuccessful)
@@ -1150,6 +1152,7 @@ void CompilerStack::compileContract(
 	try
 	{
 		// Assemble deployment (incl. runtime)  object.
+		// Set Deployment code to .object.
 		compiledContract.object = compiler->assembledObject();
 	}
 	catch(evmasm::AssemblyException const&)

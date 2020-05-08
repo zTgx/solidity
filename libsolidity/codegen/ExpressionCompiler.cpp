@@ -637,6 +637,8 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 			solAssert(false, "Callcode has been removed.");
 		case FunctionType::Kind::Creation:
 		{
+			std::cout << "FunctionType::Kind::Creation" << std::endl;
+			
 			_functionCall.expression().accept(*this);
 			// Stack: [salt], [value]
 

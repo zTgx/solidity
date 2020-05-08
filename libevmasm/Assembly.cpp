@@ -521,9 +521,12 @@ map<u256, u256> Assembly::optimiseInternal(
 
 LinkerObject const& Assembly::assemble() const
 {
+	std::cout << "::Assembly::assemble" << std::endl;
+
 	// Return the already assembled object, if present.
 	if (!m_assembledObject.bytecode.empty())
 		return m_assembledObject;
+
 	// Otherwise ensure the object is actually clear.
 	assertThrow(m_assembledObject.linkReferences.empty(), AssemblyException, "Unexpected link references.");
 
@@ -583,8 +586,10 @@ LinkerObject const& Assembly::assemble() const
 	uint8_t dataRefPush = (uint8_t)Instruction::PUSH1 - 1 + bytesPerDataRef;
 	ret.bytecode.reserve(bytesRequiredIncludingData);
 
-	for (AssemblyItem const& i: m_items)
-	{
+	for (AssemblyItem const& i: m_items) 
+	{ 
+		// std::cout << "assemble type: " << i.type() << std::endl;
+
 		// store position of the invalid jump destination
 		if (i.type() != Tag && m_tagPositionsInBytecode[0] == size_t(-1))
 			m_tagPositionsInBytecode[0] = ret.bytecode.size();
@@ -747,6 +752,8 @@ LinkerObject const& Assembly::assemble() const
 		ret.bytecode += dataItem.second;
 	}
 
+	std::cout << "before add auxiliaryData: " << ret.bytecode.data() << std::endl;
+	
 	ret.bytecode += m_auxiliaryData;
 
 	for (unsigned pos: sizeRef)

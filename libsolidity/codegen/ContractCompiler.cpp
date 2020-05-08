@@ -117,10 +117,15 @@ size_t ContractCompiler::compileConstructor(
 	std::cout << "::ContractCompiler::compileConstructor" << std::endl;
 
 	CompilerContext::LocationSetter locationSetter(m_context, _contract);
-	if (_contract.isLibrary())
+	if (_contract.isLibrary()) {
+		std::cout << "contract is a lib" << std::endl;
+
 		return deployLibrary(_contract);
+	}
 	else
 	{
+		std::cout << "contact is not a lib" << std::endl;
+
 		initializeContext(_contract, _otherCompilers);
 		return packIntoContractCreator(_contract);
 	}
@@ -131,13 +136,17 @@ void ContractCompiler::initializeContext(
 	map<ContractDefinition const*, shared_ptr<Compiler const>> const& _otherCompilers
 )
 {
+	std::cout << "::initializeContext" << std::endl;
+
 	m_context.setExperimentalFeatures(_contract.sourceUnit().annotation().experimentalFeatures);
 	m_context.setOtherCompilers(_otherCompilers);
 	m_context.setMostDerivedContract(_contract);
 	if (m_runtimeCompiler)
 		registerImmutableVariables(_contract);
+
 	CompilerUtils(m_context).initialiseFreeMemoryPointer();
 	registerStateVariables(_contract);
+
 	m_context.resetVisitedNodes(&_contract);
 }
 
@@ -173,7 +182,8 @@ void ContractCompiler::appendInitAndConstructorCode(ContractDefinition const& _c
 
 size_t ContractCompiler::packIntoContractCreator(ContractDefinition const& _contract)
 {
-	std::cout << "::::ContractCompiler::packIntoContractCreator" << std::endl;
+	std::cout << "::ContractCompiler::packIntoContractCreator" << std::endl;
+	std::cout << "Calc m_runtimeSub" << std::endl;
 
 	solAssert(!!m_runtimeCompiler, "");
 	solAssert(!_contract.isLibrary(), "Tried to use contract creator or library.");
@@ -192,6 +202,7 @@ size_t ContractCompiler::packIntoContractCreator(ContractDefinition const& _cont
 	CompilerContext::LocationSetter locationSetter(m_context, _contract);
 	m_context << deployRoutine;
 
+	std::cout << "current runtimeSUb: " << m_context.runtimeSub() << std::endl;
 	solAssert(m_context.runtimeSub() != size_t(-1), "Runtime sub not registered");
 
 	ContractType contractType(_contract);

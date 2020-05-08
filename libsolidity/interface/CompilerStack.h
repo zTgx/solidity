@@ -337,8 +337,11 @@ private:
 		// AST : class ContractDefinition: public Declaration, public StructurallyDocumented
 		ContractDefinition const* contract = nullptr;
 		std::shared_ptr<Compiler> compiler;
+
+		// Deployment code, including the runtime sub-object
 		evmasm::LinkerObject object; ///< Deployment object (includes the runtime sub-object).
 		evmasm::LinkerObject runtimeObject; ///< Runtime object.
+		
 		std::string yulIR; ///< Experimental Yul IR code.
 		std::string yulIROptimized; ///< Optimized experimental Yul IR code.
 		std::string ewasm; ///< Experimental Ewasm text representation
